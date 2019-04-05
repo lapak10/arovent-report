@@ -15,7 +15,7 @@ if ( isset( $_POST['token'] ) && isset( $_POST['username'] ) ){
 
         ND_Session::set( $data );
         
-        header("Location: ". $_SERVER['REQUEST_SCHEME']."://" .$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']."report.php");
+        header("Location: ". $_SERVER['REQUEST_SCHEME']."://" .$_SERVER['HTTP_HOST'] ."/html/report.php");
         exit;
     }
 }

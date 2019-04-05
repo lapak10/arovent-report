@@ -5,6 +5,13 @@ require_once( 'db_connection.php' );
 require_once( 'dist/library/class-session.php' );
 ND_Session :: init();
 
+if( empty ( ND_Session :: get('id') ) ){
+   // header("Location: ". $_SERVER['REQUEST_SCHEME']."://" .$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']."index.php");
+    //exit;
+
+    die('Please Login First');
+}
+
 // DONT FORGET TO REMOVE THIS LINE
 //ND_Session :: set('id',3);
 
@@ -75,7 +82,7 @@ require_once( 'dist/library/class-user.php' );
 															<th>Vehicle Inspection Id</th>
 															<th>Driver Contact</th>
 															<th>No of Trips</th>
-															<th>Trip No</th>
+															
                                                            <th>No of drop points</th>
 														   <th>	Drop points covered	</th>
 														   <th>Direction	</th>
@@ -108,7 +115,7 @@ require_once( 'dist/library/class-user.php' );
 															<th>Vehicle Inspection Id</th>
 															<th>Driver Contact</th>
 															<th>No of Trips</th>
-															<th>Trip No</th>
+															
                                                            <th>No of drop points</th>
 														   <th>	Drop points covered	</th>
 														   <th>Direction	</th>
@@ -138,7 +145,8 @@ foreach( $all_devices as $device ): $i++; ?>
 <tr>
 															
 															<td><?php  echo $i ?></td>
-                                                            <td><?php  echo $device ?></td>
+                                                            
+                                                            <td><?php echo ND_User :: get_trip_number( $device ); ?></td>
 															<td><?php echo ND_User :: get_group_name( $device ); ?></td>
 															<td><?php echo ND_User :: get_driver_attribute( ND_User :: get_linked_driver_id( $device ) , 'Origin' );?></td>
 															<td><?php echo ND_User :: get_device_row( $device ,'name' ); ?></td>
@@ -150,7 +158,7 @@ foreach( $all_devices as $device ): $i++; ?>
 															<td></td>
 															<td></td>
 															<td></td>
-															<td></td>
+															
 															<td></td>
 															<td></td>
 															<td></td>

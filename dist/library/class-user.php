@@ -43,7 +43,19 @@ class ND_User{
         return  ND_Session :: get( 'id' );
     }
 
+    public static function get_trip_number ( $device_id = '' ) {
 
+        ;
+
+        if($device_id === '') return "Not Available";
+
+        $sql = "SELECT id FROM tc_positions where deviceid = ". $device_id ." ORDER BY id DESC LIMIT 0, 1 ";
+
+        $result = mysqli_fetch_assoc ( self :: run_query($sql) );
+
+        return $result['id'];
+
+    }
 
     public static function get_my_devices(){
 
