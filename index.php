@@ -15,7 +15,7 @@ if ( isset( $_POST['token'] ) && isset( $_POST['username'] ) ){
 
         ND_Session::set( $data );
         
-        header('Location: http://localhost/html/report.php');
+        header("Location: ". $_SERVER['REQUEST_SCHEME']."://" .$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']."report.php");
         exit;
     }
 }
@@ -48,7 +48,7 @@ if ( isset( $_POST['token'] ) && isset( $_POST['username'] ) ){
     <div class="preloader">
         <div class="loader">
             <div class="loader__figure"></div>
-            <p class="loader__label">Welcome to Aro GPS Tracker</p>
+            <p class="loader__label"> <?php //echo  $_SERVER['REQUEST_SCHEME']."://" .$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']."report.php";?>Welcome to Aro GPS Tracker</p>
         </div>
     </div>
 
