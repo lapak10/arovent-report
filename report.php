@@ -154,26 +154,26 @@ foreach( $all_devices as $device ): $i++; ?>
 															<td><?php echo ND_User :: get_driver_attribute( ND_User :: get_linked_driver_id( $device ) , 'License Number' );?></td>
 															<td><?php echo ND_User :: get_driver_row( $device ,'uniqueid' ) ; ?></td>
 															<td><?php echo ND_User :: get_driver_attribute( ND_User :: get_linked_driver_id( $device ) , 'Driver Contact' );?></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
+															<td>0</td>
+															<td>0</td>
+															<td>0</td>
+															<td>0</td>
 															
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
-															<td></td>
+															<td><?php echo ND_User :: get_trip_start_date( $device );?></td>
+															<td><?php echo ND_User :: get_trip_start_time( $device );?></td>
+															<td><?php echo ND_User :: get_trip_end_date( $device );?></td>
+															<td><?php echo ND_User :: get_trip_end_time( $device );?></td>
+															<td><?php echo ND_User :: get_total_distance_travelled( $device );?></td>
+															<td><?php echo ND_User :: get_total_time_taken( $device );?></td>
+															<td>0</td>
+															<td>0</td>
+															<td>0</td>
+															<td>0</td>
+															<td>0</td>
+															<td>0</td>
+															<td>0</td>
+															<td>0</td>
+															<td>0</td>
 															
                                                             
 														

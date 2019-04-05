@@ -57,6 +57,96 @@ class ND_User{
 
     }
 
+    public static function get_last_trip_id( $device_id ){
+        return self :: get_trip_number( $device_id );
+    }
+
+    public static function get_trip_start_date( $device_id ){
+
+        $trip_id = self :: get_last_trip_id( $device_id );
+
+        if( empty( $trip_id ) ){
+            return "Not Found";
+        }
+   
+
+        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'devicetime' ) );
+
+        return $date_obj->format('d/m/Y');
+
+    }
+
+    public static function get_trip_start_time( $device_id ){
+
+        $trip_id = self :: get_last_trip_id( $device_id );
+
+        if( empty( $trip_id ) ){
+            return "Not Found";
+        }
+   
+
+        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'devicetime' ) );
+
+        return $date_obj->format('h:i A');
+
+    }
+    public static function get_trip_end_time( $device_id ){
+
+        $trip_id = self :: get_last_trip_id( $device_id );
+
+        if( empty( $trip_id ) ){
+            return "Not Found";
+        }
+   
+
+        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'fixtime' ) );
+
+        return $date_obj->format('h:i A');
+
+    }
+    public static function get_trip_end_date( $device_id ){
+
+        $trip_id = self :: get_last_trip_id( $device_id );
+
+        if( empty( $trip_id ) ){
+            return "Not Found";
+        }
+   
+
+        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'fixtime' ) );
+
+        return $date_obj->format('d/m/Y');
+
+    }
+
+    public static function get_total_distance_travelled($device_id){
+
+        $trip_id = self :: get_last_trip_id( $device_id );
+
+        return self :: get_positions_attribute( $trip_id , 'totalDistance' );
+    }
+
+    public static function get_datetime_obj($string){
+        return DateTime::createFromFormat( 'Y-m-d H:i:s' , $string );
+    }
+
+    public static function get_total_time_taken( $device_id ){
+        
+        $trip_id = self :: get_last_trip_id( $device_id );
+        if( empty( $trip_id ) ){
+            return "Not Found";
+        }
+
+        $datetime1 = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'devicetime' ) );
+        $datetime2 =  self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'fixtime' ) );
+        $interval = $datetime1->diff($datetime2);
+        
+        $elapsed = $interval->format('%h:%i');
+        return $elapsed;
+
+
+    }
+
     public static function get_my_devices(){
 
         $device_array = [];
@@ -126,6 +216,20 @@ class ND_User{
         return $result[ $col ] === '' ? 'Not Found': $result[ $col ] ;
     }
 
+    public static function get_positions_row( $trip_id , $col = '' ){
+        $sql = "select * from tc_positions where id = " . $trip_id ;
+        $result = self :: run_query( $sql );
+        if( ! $result ) return false;
+
+        $result = mysqli_fetch_assoc ( $result );
+
+        if( '' === $col ){
+            return $result;
+        }
+
+        return $result[ $col ] === '' ? 'Not Found': $result[ $col ] ;
+    }
+
     public static function get_device_row( $device_id = 0, $col = ''){
         $sql = "select * from tc_devices where id = " . $device_id ;
         $result = self :: run_query($sql);
@@ -143,6 +247,19 @@ class ND_User{
     public static function get_driver_attribute( $driver_id , $attribute_name='Origin'){
 
         $data = self :: get_driver_row( $driver_id );
+        if( false === $data ) return 'Not Found';
+       
+
+        //return json_encode($data);
+        $attribute = (array)json_decode( $data['attributes'] );
+
+        return isset( $attribute[ $attribute_name ] ) ? $attribute[ $attribute_name ] : 'Not Found';
+
+    }
+
+    public static function get_positions_attribute( $trip_id , $attribute_name='totalDistance'){
+
+        $data = self :: get_positions_row( $trip_id );
         if( false === $data ) return 'Not Found';
        
 
