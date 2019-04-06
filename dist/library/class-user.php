@@ -8,9 +8,37 @@ class ND_User{
    // private static $user_to_device_table = 'tc_user_device';
 
     public static function attempt_login( $username,$token ){
+
+        $email_row  =  self :: get_user_row_for_email_id( $username );
+
+        if( ! $email_row ) {
+            return false;
+        }
+
+        $hashedpassword = $email_row['hashedpassword'];
+
+        $temp_hash = self :: make_hash( $token, $email_row['salt'] );
         
-        $sql = "SELECT *  FROM ". self :: $users_table ." WHERE email = '". mysqli_real_escape_string( self :: get_connection_to_db() , $username ) ."' AND `token` = '". mysqli_real_escape_string( self :: get_connection_to_db() , $token ) ."'";
+        //$hashedpassword = $email_row['salt'];
         
+        //$sql = "SELECT *  FROM ". self :: $users_table ." WHERE email = '". mysqli_real_escape_string( self :: get_connection_to_db() , $username ) ."' AND `token` = '". mysqli_real_escape_string( self :: get_connection_to_db() , $token ) ."'";
+        
+        //$result = self :: run_query( $sql );
+
+        return $hashedpassword === $temp_hash ? $email_row : false ;
+      
+    
+    }
+
+    private static function make_hash($pass,$salt){
+        return bin2hex( hash_pbkdf2('sha1',$pass, hex2bin( $salt ),1000,24,true) );
+    }
+
+    private static function get_user_row_for_email_id( $email = '' ){
+
+
+        $sql = "SELECT *  FROM ". self :: $users_table ." WHERE email = '". mysqli_real_escape_string( self :: get_connection_to_db() , $email ) . "'" ;
+         
         $result = self :: run_query( $sql );
 
         if ( $result->num_rows > 0) {
@@ -23,8 +51,6 @@ class ND_User{
             return false;
         }
 
-      
-    
     }
 
     private static function get_connection_to_db(){
