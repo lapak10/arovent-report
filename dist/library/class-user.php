@@ -70,7 +70,7 @@ class ND_User{
         }
    
 
-        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'devicetime' ) );
+        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'fixtime' ) );
 
         return $date_obj->format('d/m/Y');
 
@@ -85,7 +85,7 @@ class ND_User{
         }
    
 
-        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'devicetime' ) );
+        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'fixtime' ) );
 
         return $date_obj->format('h:i A');
 
@@ -99,7 +99,7 @@ class ND_User{
         }
    
 
-        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'fixtime' ) );
+        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'devicetime' ) );
 
         return $date_obj->format('h:i A');
 
@@ -113,7 +113,7 @@ class ND_User{
         }
    
 
-        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'fixtime' ) );
+        $date_obj = self :: get_datetime_obj( self :: get_positions_row( $trip_id , 'devicetime' ) );
 
         return $date_obj->format('d/m/Y');
 
