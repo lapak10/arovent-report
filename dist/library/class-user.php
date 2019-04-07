@@ -30,6 +30,10 @@ class ND_User{
     
     }
 
+    private static function get_my_devices_array(){
+
+    }
+
     private static function make_hash($pass,$salt){
         return bin2hex( hash_pbkdf2('sha1',$pass, hex2bin( $salt ),1000,24,true) );
     }
@@ -145,15 +149,19 @@ class ND_User{
 
     }
 
-    public static function get_total_distance_travelled($device_id){
+    public static function get_total_distance_travelled($device_id ,$want_time = false){
+
+        if( $want_time ){
+            return self  :: get_total_time_taken( $device_id );
+        }
 
         $trip_id = self :: get_last_trip_id( $device_id );
 
         return self :: get_positions_attribute( $trip_id , 'totalDistance' );
     }
 
-    public static function get_datetime_obj($string){
-        return DateTime::createFromFormat( 'Y-m-d H:i:s' , $string );
+    public static function get_datetime_obj($string , $format = 'Y-m-d H:i:s' ){
+        return DateTime::createFromFormat( $format , $string );
     }
 
     public static function get_total_time_taken( $device_id ){
@@ -170,6 +178,255 @@ class ND_User{
         $elapsed = $interval->format('%h:%i');
         return $elapsed;
 
+
+    }
+
+    public static function get_total_time_taken_by_trip_ids( $first_trip_id , $last_trip_id ){
+    
+
+        $datetime1 = self :: get_datetime_obj( self :: get_positions_row( $first_trip_id , 'fixtime' ) );
+        $datetime2 =  self :: get_datetime_obj( self :: get_positions_row( $last_trip_id , 'fixtime' ) );
+        //return self :: get_positions_row( $last_trip_id , 'fixtime' );
+        //$datetime2 = self :: get_datetime_obj( '2019-03-13 09:32:30' );
+        //$datetime1 =  self :: get_datetime_obj( '2019-03-20 09:32:30' );
+
+        if( false === $datetime1 OR false === $datetime2 ){
+            return 'NA';
+        }
+
+        $interval = $datetime1->diff($datetime2);
+        
+         $hours =  $interval->h + ($interval->d * 24);
+         $mins =  $interval->i;
+        return "$hours:$mins";
+
+
+    }
+
+    public static function get_device_dropdown_array(){
+        $dropdown_array = [];
+
+        $device_ids = self :: get_my_devices();
+
+        foreach( $device_ids as $device ){
+            $dropdown_array[ $device ] = self :: get_device_name( $device );
+        }
+
+       // $dropdown_array = ['all'=>'All']  + $dropdown_array ;
+        return $dropdown_array;
+    }
+
+    public static function get_device_start_date_row(  $device_id  , $from_date= ''  ){
+
+       // $device_row = self :: get_device_row( $device_id );
+
+        $from_date_obj =  DateTime::createFromFormat( 'd/m/Y' , $from_date );
+
+        $sql = "select * from tc_positions where deviceid=$device_id AND fixtime > '". $from_date_obj->format('Y-m-d') ." 00:00:00' order by id DESC limit 0,1";
+
+        $result = self :: run_query( $sql );
+
+        if(! $result){
+            return false;
+
+        }
+
+        while($row = $result->fetch_assoc()) {
+            return $row;
+        } 
+
+
+
+    }
+
+    private static function get_total_distance_travelled_after_date ( $device_id , $after_date, $want_time = false ){
+
+        $from_date_obj =  DateTime::createFromFormat( 'd/m/Y' , $after_date );
+        $last_trip_row_sql = "select * from tc_positions where deviceid=$device_id AND fixtime > '". $from_date_obj->format('Y-m-d') ." 00:00:00' order by id DESC limit 0,1";
+
+        $start_day_first_trip_row_sql = "select * from tc_positions where deviceid=$device_id AND fixtime > '". $from_date_obj->format('Y-m-d') ." 00:00:00' order by id ASC limit 0,1";
+
+
+        $last_row_result = self :: run_query( $last_trip_row_sql );
+        $start_day_first_trip_row_result = self :: run_query( $start_day_first_trip_row_sql );
+
+        $last_row = $last_row_result->fetch_assoc();
+        $start_day_first_trip_row = $start_day_first_trip_row_result->fetch_assoc();
+
+        if($want_time){
+            return self :: get_total_time_taken_by_trip_ids ( $start_day_first_trip_row['id'],  $last_row['id'] );
+        }
+
+        $start_day_first_row_total_distance  = self :: get_positions_attribute( $start_day_first_trip_row['id'] );
+
+        $last_day_total_distance  = self :: get_positions_attribute( $last_row['id'] );
+
+        //return  $start_day_first_trip_row['id'];
+        return  number_format( (float) $last_day_total_distance - (float) $start_day_first_row_total_distance , 2, '.', '');
+    }
+
+    
+    private static function get_total_distance_travelled_before_date ( $device_id , $before_date, $want_time = false ){
+
+           
+
+            $from_date_obj =  DateTime::createFromFormat( 'd/m/Y' , $before_date );
+
+            //if(! $from_date_obj) return false;
+
+            $last_trip_row_sql = "select * from tc_positions where deviceid=$device_id AND fixtime < '". $from_date_obj->add( new DateInterval('P1D') )->format('Y-m-d') ." 00:00:00'  order by id DESC limit 0,1";
+
+            $start_day_first_trip_row_sql = "select * from tc_positions where deviceid=$device_id AND fixtime < '". $from_date_obj->add( new DateInterval('P1D') )->format('Y-m-d') ." 00:00:00'  order by id ASC limit 0,1";
+
+
+           // $start_day_first_trip_row_sql = "select * from tc_positions where deviceid=$device_id AND fixtime > '". $from_date_obj->format('Y-m-d') ." 00:00:00' order by id ASC limit 0,1";
+    
+    
+            $last_row_result = self :: run_query( $last_trip_row_sql );
+            $start_day_first_trip_row_result = self :: run_query( $start_day_first_trip_row_sql );
+    
+            $last_row = $last_row_result->fetch_assoc();
+            $start_day_first_trip_row = $start_day_first_trip_row_result->fetch_assoc();
+    
+            if($want_time){
+                return self :: get_total_time_taken_by_trip_ids ( $start_day_first_trip_row['id'],  $last_row['id'] );
+            }
+
+            $start_day_first_row_total_distance  = self :: get_positions_attribute( $start_day_first_trip_row['id'] );
+    
+            $last_day_total_distance  = self :: get_positions_attribute( $last_row['id'] );
+    
+            return  number_format( (float) $last_day_total_distance - (float) $start_day_first_row_total_distance , 2, '.', '');
+       
+
+    }
+
+    public static function get_total_distance_travelled_between_date ( $device_id , $after_date ='' , $before_date = '',$want_time = false ){
+
+        
+
+        if( ''=== trim($after_date) AND '' === trim($before_date) ){
+            // No date range provided , so we will just call the original total distance calculator
+           // return 'NO DATE';
+            return self :: get_total_distance_travelled ( $device_id , $want_time );
+        }
+
+        if( ''=== trim( $after_date ) ){
+            // No date range provided , so we will just call the original total distance calculator
+           // return 'to date';
+            return self :: get_total_distance_travelled_before_date ( $device_id , $before_date  , $want_time );
+        }
+
+        if( ''=== trim ( $before_date ) ){
+           // return 'from date';
+            // No date range provided , so we will just call the original total distance calculator
+            return self :: get_total_distance_travelled_after_date ( $device_id , $after_date  , $want_time );
+        }
+
+        $after_date_obj =  DateTime::createFromFormat( 'd/m/Y' , $after_date );
+
+        $before_date_obj =  DateTime::createFromFormat( 'd/m/Y' , $before_date );
+
+
+        $start_day_first_trip_row_sql = "select * from tc_positions where deviceid=$device_id AND fixtime > '". $after_date_obj->format('Y-m-d') ." 00:00:00'  order by id ASC limit 0,1";
+
+        $last_trip_row_sql = "select * from tc_positions where deviceid=$device_id AND fixtime < '". $before_date_obj->add( new DateInterval('P1D') )->format('Y-m-d') ." 00:00:00'  order by id DESC limit 0,1";
+
+
+       // $start_day_first_trip_row_sql = "select * from tc_positions where deviceid=$device_id AND fixtime > '". $from_date_obj->format('Y-m-d') ." 00:00:00' order by id ASC limit 0,1";
+
+
+        $last_row_result = self :: run_query( $last_trip_row_sql );
+        $start_day_first_trip_row_result = self :: run_query( $start_day_first_trip_row_sql );
+
+        $last_row = $last_row_result->fetch_assoc();
+        $start_day_first_trip_row = $start_day_first_trip_row_result->fetch_assoc();
+
+        if($want_time){
+            return self :: get_total_time_taken_by_trip_ids ( $start_day_first_trip_row['id'],  $last_row['id'] );
+        }
+
+        $start_day_first_row_total_distance  = self :: get_positions_attribute( $start_day_first_trip_row['id'] );
+
+        $last_day_total_distance  = self :: get_positions_attribute( $last_row['id'] );
+
+        return  number_format( (float) $last_day_total_distance - (float) $start_day_first_row_total_distance , 2, '.', '');
+   
+
+}
+
+    
+
+    // public static function get_total_distance_travelled_date_range( $device_id , $from_date='' , $to_date='' ){
+
+        
+
+     
+    //     $from_row  = get_device_start_date_row( $device_id , $from_date );
+
+    //     $to_row  = get_device_start_date_row( $device_id , $to_date );
+
+    //     $to_date_obj = self :: get_datetime_obj( $to_date , 'd/m/Y' );
+
+    //     }
+
+    //     if( false === $from_date ){
+    //         $from_date_obj  = new DateTime('now');
+    //     }
+
+    // }
+
+    public static function get_device_end_date_row(  $device_id , $to_date = ''  ){
+
+        $to_date_obj =  DateTime::createFromFormat( 'd/m/Y' , $to_date );
+
+
+        $sql = "select * from tc_positions where deviceid=$device_id AND fixtime < '". $to_date_obj->add( new DateInterval('P1D') )->format('Y-m-d') ." 00:00:00'  order by id ASC limit 0,1";
+
+        $result = self :: run_query( $sql );
+
+        if(! $result){
+            return false;
+        }
+
+        while($row = $result->fetch_assoc()) {
+            return $row;
+        }
+       // $sql = "select devicetime from tc_positions where devicetime < '2019-03-15 00:00:00'"; // to + 1 day
+        
+    }
+    public static function get_device_from_to_date(  $device_id ,$from_date='', $to_date = ''  ){
+
+        $to_date_obj =  DateTime::createFromFormat( 'd/m/Y' , $to_date );
+
+
+        $sql = "select * from tc_positions where deviceid=$device_id AND fixtime < '". $to_date_obj->add( new DateInterval('P1D') )->format('Y-m-d') ." 00:00:00' AND AND fixtime < '". $to_date_obj->add( new DateInterval('P1D') )->format('Y-m-d') ." 00:00:00' order by id ASC limit 0,1";
+
+        $result = self :: run_query( $sql );
+
+        if(! $result){
+            return false;
+        }
+
+        while($row = $result->fetch_assoc()) {
+            return $row;
+        }
+        
+    }
+
+    private static function get_device_name($device_id){
+
+        $sql = "SELECT * FROM tc_devices where id='". $device_id ."'";
+
+        $result = self :: run_query( $sql );
+
+        if(! $result){
+            return 'NA';
+        }
+
+        while($row = $result->fetch_assoc()) {
+            return $row['name'];
+        }
 
     }
 
