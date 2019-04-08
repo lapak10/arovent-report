@@ -58,13 +58,13 @@ $post_device_id = ( empty( $_POST['device_id'] ) OR 'all' === $_POST['device_id'
 
     if( empty( $from_date ) AND ! empty( $to_date ) ){
 
-        echo "<title>Summary For Device - ". $device_dropdown[ $post_device_id ] ." Before $to_date</title>";
+        echo"<title>Summary For Device - Before $to_date</title>";
 
     }
 
     if( ! empty( $from_date ) AND  empty( $to_date ) ){
 
-        echo "<title>Summary For Device - ". $device_dropdown[ $post_device_id ] ." Before $to_date</title>";
+        echo "<title>Summary For Device - After $to_date</title>";
 
     }
 
@@ -265,12 +265,12 @@ echo form_dropdown('device_id[]', $device_dropdown, isset( $_POST['device_id'] )
                                         </tfoot>
                                                                                          <tbody>
 <?php 
-$all_devices[] =  ND_User :: get_my_devices ( ) ;
-
-if( isset( $_POST['device_id'] ) and ! empty ( $_POST['device_id'] ) ) {
-    $all_devices = [];
-    $all_devices[] = $_POST['device_id'];
-}
+//$all_devices[] =  ND_User :: get_my_devices ( ) ;
+$all_devices[0] = [];
+ if( isset( $_POST['device_id'] ) and ! empty ( $_POST['device_id'] ) ) {
+//     $all_devices = [];
+     $all_devices[0] = $_POST['device_id'];
+ }
 
 $i = 0;
 
@@ -294,13 +294,20 @@ foreach( $all_devices[0] as $device ): $i++; ?>
 															<td>0</td>
 															<td>0</td>
 															
-															<td><?php echo ND_User :: get_trip_start_date( $device );?></td>
+															
+                                                            <?php if( empty($from_date) AND empty( $to_date ) ):?>
+                                                            <td><?php echo ND_User :: get_trip_start_date( $device );?></td>
 															<td><?php echo ND_User :: get_trip_start_time( $device );?></td>
 															<td><?php echo ND_User :: get_trip_end_date( $device );?></td>
 															<td><?php echo ND_User :: get_trip_end_time( $device );?></td>
-
-                                                            
-                                                            <td><?php echo ND_User :: get_total_distance_travelled_between_date( $device , $from_date , $to_date );?></td>
+<?php else:?>
+<td><?php echo empty( $from_date )?'-': $from_date;  ?></td>
+<td>-</td>
+<td><?php echo empty( $to_date )?'-': $to_date;  ?></td>
+<td>-</td>
+															
+<?php endif;?>                                                    
+                                                        <td><?php echo ND_User :: get_total_distance_travelled_between_date( $device , $from_date , $to_date );?></td>
 
                                                             <td><?php 
 
